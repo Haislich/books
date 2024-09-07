@@ -1,0 +1,10 @@
+[book]
+authors = ["Haislich"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Computer Vision"
+
+# https://rust-lang.github.io/mdBook/format/mathjax.html
+[output.html]
+mathjax-support = true

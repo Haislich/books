@@ -30,7 +30,7 @@
 
         - [Interpolation techniques](./image_processing/image_resizing/image_resampling/up_sampling/interpolation_techniques.md)
   
-  - [Image gradient](./image_processing/image_gradient/introduction.md)<!-- OK -->
+  - [Image gradient](./image_processing/image_gradient/introduction.md)<!-- TODO CONVERTIRE -->
 
     - [Edges](./image_processing/image_gradient/edges/introduction.md)
       - [Effect of Noise](./image_processing/image_gradient/effect_of_noise)

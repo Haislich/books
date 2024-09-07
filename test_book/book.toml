@@ -1,0 +1,9 @@
+[book]
+authors = ["Haislich"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Test Book"
+
+[preprocessor.chapters]
+command = "../target/debug/books.exe"

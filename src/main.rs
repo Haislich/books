@@ -1,5 +1,6 @@
 use books::chapter_splitter::ChapterSplitter;
 use clap::{Arg, ArgMatches, Command};
+use log::LevelFilter;
 use mdbook::book::{Book, BookItem};
 use mdbook::errors::Error;
 use mdbook::preprocess::{self, PreprocessorContext};
@@ -10,7 +11,7 @@ use std::path::Path;
 use std::process;
 use std::{fs, io};
 pub fn make_app() -> Command {
-    Command::new("chapter-splitter")
+    Command::new("chapter_splitter")
         .about("A mdbook preprocessor which finds markdown files and decompress the headings")
         .subcommand(
             Command::new("supports")
@@ -35,6 +36,7 @@ struct ParsedChapter {
 }
 
 fn main() {
+    env_logger::builder().filter_level(LevelFilter::Info).init();
     let matches = make_app().get_matches();
 
     // Users will want to construct their own preprocessor here
@@ -46,7 +48,6 @@ fn main() {
         eprintln!("{}", e);
         process::exit(1);
     }
-    env_logger::init();
 }
 
 fn handle_preprocessing(pre: &dyn Preprocessor) -> Result<(), Error> {

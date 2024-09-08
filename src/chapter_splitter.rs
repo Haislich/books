@@ -1,22 +1,18 @@
+use log::info;
 use mdbook::{
-    book::Book,
+    book::{Book, Chapter},
     errors::Error,
     preprocess::{Preprocessor, PreprocessorContext},
     BookItem,
 };
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::path::PathBuf;
-use walkdir::{DirEntry, WalkDir};
-
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
+use std::fmt;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
-#[derive(Default, Clone)]
-struct Chapter {
-    title: String,
-    content: String,
-}
+use std::path::PathBuf;
+use std::{fs::OpenOptions, path::Display};
+use walkdir::{DirEntry, WalkDir};
 
 pub struct ChapterSplitter;
 impl ChapterSplitter {
@@ -26,7 +22,7 @@ impl ChapterSplitter {
     fn log_to_file(&self, message: &str) {
         let mut file = OpenOptions::new()
             .create(true)
-            .write(true)
+            .append(true)
             .open("preprocessor.log")
             .expect("Unable to open log file");
 
@@ -53,40 +49,38 @@ impl ChapterSplitter {
     }
     fn parse_markdown(&self, content: &str) -> Vec<Chapter> {
         let parser = Parser::new(content);
-        let mut chapters = vec![];
-        let mut current_chapter = Chapter::default();
-
-        for event in parser {
-            match event {
-                Event::Start(Tag::Heading { level, .. }) => {
-                    // Handle new chapter or section
-                    let current_level = level as u8;
-                    if current_level == 1 {
-                        if !current_chapter.title.is_empty() {
-                            chapters.push(current_chapter);
-                            current_chapter = Chapter::default();
-                        }
-                    }
-                }
-                Event::Text(text) => {
-                    // Collect text for the current heading
-                    if current_chapter.title.is_empty() {
-                        current_chapter.title = text.to_string();
-                    } else {
-                        current_chapter.content.push_str(&text);
-                    }
-                }
-                Event::End(TagEnd::Heading(_)) => {
-                    // Finalize the current section
-                    current_chapter.content.push('\n');
-                }
-                _ => {}
-            }
-        }
-        if !current_chapter.title.is_empty() {
-            chapters.push(current_chapter);
-        }
-        chapters
+        // let mut chapters = vec![];
+        // let mut current_chapter = Chapter::default();
+        vec![]
+        // for event in parser {
+        //     match event {
+        //         Event::Start(Tag::Heading { level, .. }) => {
+        //             // Handle new chapter or section
+        //             let current_level = level as u8;
+        //             if !current_chapter.name.is_empty() {
+        //                 chapters.push(current_chapter);
+        //                 current_chapter = Chapter::default();
+        //             }
+        //         }
+        //         Event::Text(text) => {
+        //             // Collect text for the current heading
+        //             if current_chapter.title.is_empty() {
+        //                 current_chapter.title = text.to_string();
+        //             } else {
+        //                 current_chapter.content.push_str(&text);
+        //             }
+        //         }
+        //         // Event::End(TagEnd::Heading(_)) => {
+        //         //     // Finalize the current section
+        //         //     current_chapter.content.push('\n');
+        //         // }
+        //         _ => {}
+        //     }
+        // }
+        // if !current_chapter.name.is_empty() {
+        //     chapters.push(current_chapter);
+        // }
+        // chapters
     }
 }
 impl Default for ChapterSplitter {
@@ -96,7 +90,7 @@ impl Default for ChapterSplitter {
 }
 impl Preprocessor for ChapterSplitter {
     fn name(&self) -> &str {
-        "chapter-splitter"
+        "chapter_splitter"
     }
 
     fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
@@ -104,10 +98,17 @@ impl Preprocessor for ChapterSplitter {
         let markdown_files = self.get_markdown_files(src_dir);
 
         for markdown_path in markdown_files {
+            // self.log_to_file(
+            //     &markdown_path
+            //         .clone()
+            //         .into_os_string()
+            //         .into_string()
+            //         .unwrap(),
+            // );
+            // self.log_to_file(&"\n\n");
             let chapters = self.parse_markdown(&fs::read_to_string(markdown_path).unwrap());
             for chapter in chapters {
                 self.log_to_file(&chapter.title);
-                self.log_to_file(&"\n");
                 self.log_to_file(&chapter.content);
                 self.log_to_file(&"\n\n");
             }

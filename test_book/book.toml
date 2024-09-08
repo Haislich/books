@@ -5,5 +5,5 @@ multilingual = false
 src = "src"
 title = "Test Book"
 
-[preprocessor.chapters]
+[preprocessor.chapter_splitter]
 command = "../target/debug/books.exe"

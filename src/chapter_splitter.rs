@@ -6,11 +6,11 @@ use mdbook::{
     BookItem,
 };
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
-use std::fmt;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
+use std::{fmt, vec};
 use std::{fs::OpenOptions, path::Display};
 use walkdir::{DirEntry, WalkDir};
 
@@ -30,7 +30,7 @@ impl ChapterSplitter {
     }
     fn create_structure(&self, chapters: &[Chapter], base_path: &Path) {
         for chapter in chapters {
-            let path = base_path.join(&chapter.title);
+            let path = base_path.join(&chapter.name);
             fs::create_dir_all(&path).expect("Failed to create directory");
             let file_path = path.join("introduction.md");
             fs::write(file_path, &chapter.content).expect("Failed to write file");
@@ -49,38 +49,8 @@ impl ChapterSplitter {
     }
     fn parse_markdown(&self, content: &str) -> Vec<Chapter> {
         let parser = Parser::new(content);
-        // let mut chapters = vec![];
-        // let mut current_chapter = Chapter::default();
+
         vec![]
-        // for event in parser {
-        //     match event {
-        //         Event::Start(Tag::Heading { level, .. }) => {
-        //             // Handle new chapter or section
-        //             let current_level = level as u8;
-        //             if !current_chapter.name.is_empty() {
-        //                 chapters.push(current_chapter);
-        //                 current_chapter = Chapter::default();
-        //             }
-        //         }
-        //         Event::Text(text) => {
-        //             // Collect text for the current heading
-        //             if current_chapter.title.is_empty() {
-        //                 current_chapter.title = text.to_string();
-        //             } else {
-        //                 current_chapter.content.push_str(&text);
-        //             }
-        //         }
-        //         // Event::End(TagEnd::Heading(_)) => {
-        //         //     // Finalize the current section
-        //         //     current_chapter.content.push('\n');
-        //         // }
-        //         _ => {}
-        //     }
-        // }
-        // if !current_chapter.name.is_empty() {
-        //     chapters.push(current_chapter);
-        // }
-        // chapters
     }
 }
 impl Default for ChapterSplitter {
@@ -96,27 +66,36 @@ impl Preprocessor for ChapterSplitter {
     fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
         let src_dir = ctx.root.join(&ctx.config.book.src);
         let markdown_files = self.get_markdown_files(src_dir);
+        Ok(book)
+    }
+}
 
-        for markdown_path in markdown_files {
-            // self.log_to_file(
-            //     &markdown_path
-            //         .clone()
-            //         .into_os_string()
-            //         .into_string()
-            //         .unwrap(),
-            // );
-            // self.log_to_file(&"\n\n");
-            let chapters = self.parse_markdown(&fs::read_to_string(markdown_path).unwrap());
-            for chapter in chapters {
-                self.log_to_file(&chapter.title);
-                self.log_to_file(&chapter.content);
-                self.log_to_file(&"\n\n");
+#[cfg(test)]
+mod tests {
+    use std::{fs, path::PathBuf};
+
+    use mdbook::preprocess;
+    use pulldown_cmark::Parser;
+
+    use super::ChapterSplitter;
+    #[test]
+    fn asdrubale() {
+        let preprocess = ChapterSplitter::default();
+        let mut markdown_files = preprocess.get_markdown_files(PathBuf::from("./test_book/src"));
+        // let markdown_files: Vec<String> = markdown_files
+        //     .iter()
+        //     .map(|md| md.clone().into_os_string().into_string().unwrap())
+        //     .filter(|md| !md.contains("SUMMARY.md"))
+        //     .collect();
+        // .for_each(|md| println!("{}", md));
+        for markdown in markdown_files {
+            if markdown.file_name().unwrap() != "SUMMARY.md" {
+                let content = fs::read_to_string(&markdown).unwrap();
+                let parser = Parser::new(&content);
+                for event in parser {
+                    println!("{:?}", event)
+                }
             }
         }
-        // markdown_files
-        //     .iter()
-        //     .for_each(|md| log_to_file(&md.clone().into_os_string().into_string().unwrap()));
-
-        Ok(book)
     }
 }

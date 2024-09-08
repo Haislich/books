@@ -318,3 +318,163 @@ In particular we can modify the original HoG procedure to better suite this task
 
 - 1:2 Aspect Ratio: This ratio effectively captures the vertical orientation of a human body, making it ideal for recognizing standing or walking figures, as it aligns well with the human torso and leg regions.
 - 64x128 Pixels: This specific resolution strikes a balance between detail and computational efficiency. It's high enough to capture necessary details for distinguishing human forms but low enough to maintain speed in processing, which is crucial for real-time applications like surveillance.
+
+#### SIFT
+
+Scale-Invariant Feature Transform (SIFT) is both a feature detector and a descriptor.
+As a detector, SIFT identifies key points in an image that are invariant to scale and orientation changes, and somewhat robust to changes in illumination and noise.
+These key points are typically distinct and localized in the image, making SIFT particularly effective for tasks like object recognition and registration where matching specific features across different images is crucial.
+
+The steps of the algorithm are:
+
+1. Scale-Space extrema detection: The first step in SIFT is to construct a scale space, which is typically achieved by convolving the image with Gaussian filters at different scales. This results in a set of blurred images each representing the input image at a different scale. Once the scale space is constructed, the Difference of Gaussians (Difference of Gaussians is a more efficent approximation of LoG) is computed by subtracting consecutive Gaussian-blurred images within the same octave of the scale space. These DoG images are used to find potential keypoint locations.
+2. Keypoint localization: In this step, each pixel in the DoG images is compared with its 8 neighbors in the same image and 9 neighbors in the scale above and below (26 neighbors in total). Pixels that are local maxima or minima are selected as candidate keypoints. The positions of these candidate keypoints are further refined to achieve sub-pixel accuracy by using a Taylor expansion of the scale-space function. Keypoints with low contrast or poorly localized along edges are discarded. This is done by calculating the Laplacian or using a Hessian matrix and eliminating keypoints that do not meet certain stability criteria.
+3. Keypoint orientation: For each image sample in a region around the keypoint, the gradient magnitude and orientation are calculated. The gradients are weighted by a Gaussian window centered at the keypoint location. This Gaussian window decreases the influence of gradients that are farther away from the keypoint, focusing more on those in the immediate vicinity, which are more likely to be relevant to the actual keypoint. An orientation histogram is created from the gradient orientations of the sampled points within the region, using the weighted gradients. Each sample adds to a bin in the histogram based on its orientation, with the contribution weighted by its gradient magnitude and the Gaussian weight. The histogram typically has 36 bins covering 360 degrees. The peaks in the histogram represent the most prominent orientations within the sampled region. The highest peak is selected, and any other peak that is within 80% of the highest peak’s magnitude is also considered. This approach allows for the keypoint to have multiple orientations, which can be useful for matching keypoints under different rotations.
+
+Once the feature are found, they are described as follow:
+
+1. Each keypoint is associated with a specific scale, determined during the detection phase. The image used for the descriptor calculation is the one that corresponds to this scale in the Gaussian pyramid. This ensures that the local characteristics around the keypoint are appropriately represented for that scale.
+2. Gradients (both magnitude and direction) are calculated for each pixel within a 16x16 window centered on the keypoint. These gradients provide the fundamental components used to describe the pattern of intensities around the keypoint. Gradients are sensitive to edges, corners, and other texture elements that are crucial for describing the local area uniquely.
+3. To achieve rotation invariance, the gradients calculated in step 2 are adjusted according to the keypoint’s orientation. This means rotating the coordinate system of the 16x16 window so that the orientation of the keypoint becomes the new 'up' direction in the window. This rotation ensures that the descriptor is consistent even if the image is rotated.
+4. The large 16x16 window is subdivided into smaller 4x4 sub-blocks or cells. This subdivision allows the descriptor to capture more localized information within the window, enhancing the ability to handle changes in local appearance and structure.
+5. Within each 4x4 cell, an orientation histogram is computed. The gradient magnitudes contribute to the histogram bins based on their orientation, with the contribution weighted by the magnitude of each gradient. Additionally, these contributions are typically weighted by a Gaussian window centered on the keypoint to give higher importance to gradients closer to the center of the window. This results in each cell capturing a summarized but detailed representation of the gradient directions within that cell.
+6. The orientation histograms from all 16 cells (4x4 grid) are concatenated to form the final SIFT descriptor. Since each histogram consists of 8 bins and there are 16 cells, the resulting descriptor is a 128-element vector. This vector encodes the local texture and gradient patterns around the keypoint in a way that is distinctive and robust to changes in viewpoint, scale, and illumination.
+
+The SIFT (Scale-Invariant Feature Transform) descriptor is widely appreciated for its robust properties, which make it highly effective in computer vision tasks like object recognition, image matching, and 3D reconstruction.
+
+- Invariance to scale: The SIFT descriptor is designed to be invariant to changes in scale. Features are detected at multiple scales in the scale space, and each keypoint is described in terms of its relative scale, ensuring that the same feature can be recognized at different sizes.
+- Invariance to Rotation: Orientation normalization during the descriptor computation process ensures that the descriptor is invariant to image rotation. By aligning the gradient orientations relative to the keypoint orientation, the descriptor maintains consistency regardless of how the object is oriented in the scene.
+- Robustness to Affine Transformation: While primarily designed for scale and rotation invariance, SIFT descriptors are also robust to a degree of affine transformations, which include translation, scaling, rotation, and shearing. This robustness is crucial for matching features across images that have been taken from different viewpoints.
+- Partial Invariance to Illumination Changes: The SIFT descriptor is somewhat invariant to changes in illumination. The normalization step in the descriptor formation reduces the effects of varying lighting conditions by normalizing the vector to unit length, thus making the descriptor more about the relative gradients than their absolute values.
+- Distinctiveness: Each SIFT descriptor is highly distinctive, which is achieved by the detailed 128-element vector that captures substantial local gradient details within a region. This distinctiveness allows for reliable matching of keypoints between different images, even among thousands of keypoints.
+- Robustness to Noise: Gaussian blurring used during the detection and description phases of SIFT helps in reducing the effect of noise in the image. The descriptor's reliance on gradient orientations and magnitudes, rather than raw pixel intensities, further helps mitigate the impact of noise.
+
+#### SURF
+
+The Speeded Up Robust Features (SURF) algorithm is known for being faster and somewhat more robust than SIFT, due to some simplifications and optimizations in its approach.
+SURF, like SIFT, is used for detecting keypoints and extracting feature descriptors, but it has been specifically designed to increase the speed of the process while maintaining robustness.
+
+During the interest point detection SURF relies on the integral image concept, use of Hessian matrix determinant for keypoint detection, and involves several steps that make it particularly effective and efficient:
+
+- Integral image: The first step in SURF is the computation of the integral image (also known as a summed-area table). An integral image allows for rapid summation of pixel values within a rectangular area and is used to compute box-type convolutions quickly, which approximate Gaussian convolutions. This transformation facilitates the rapid calculation of image features at different scales and makes the algorithm much faster compared to techniques that rely on repeated filtering.
+    $$
+    \text{Integral Image}(x, y) = \sum_{i \leq x, j \leq y} \text{Image}(i, j)
+    $$
+- Hessian matrix determinant for keypoint localization: the Hessian matrix is used at different scales in scale-space to determine possible interest points.
+    $$
+    H(x, \sigma) = \begin{pmatrix}
+    L_{xx}(x, \sigma) & L_{xy}(x, \sigma) \\
+    L_{xy}(x, \sigma) & L_{yy}(x, \sigma)
+    \end{pmatrix}
+    $$
+    The Hessian matrix is a crucial tool in SURF and other image processing algorithms because it provides a concise way to capture the second-order local image curvature. This information is essential for determining potential interest points or keypoints in images.
+    Here $L_{xx}$ , $L_{yy}$ and $L_{xy}$ are the second order derivative gaussian derivatives of the image w.r.t x, y and mixed.
+    To identify keypoints, SURF calculates the determinant of the hessian matrix at each pixel and scale
+    $$
+    \text{det}(H) = L_{xx}(x, \sigma) \cdot L_{yy}(x, \sigma) - (L_{xy}(x, \sigma))^2
+    $$
+    The determinant of the Hessian matrix is sensitive to blob-like structures in the image where the curvature is either concave or convex in both dimensions. This property makes it particularly useful for identifying points of interest that are distinct and stable, which are good candidates for keypoints.By calculating the Hessian matrix at various scales, SURF efficiently analyzes the scale-space of the image. This scale-invariant feature detection ensures that features can be recognized at different sizes, which is crucial for many computer vision applications. The locations of local maxima and minima of the determinant across scale and space pinpoint potential keypoints. These points are where the determinant values are higher or lower than all the neighboring points in the scale-space, indicating significant local features.
+    Determining the exact Hessian matrix using second-order Gaussian derivatives is computationally expensive, especially when applied to every pixel of an image across multiple scales. SURF optimizes this process using box filters, which are a type of integral filter that approximates the Gaussian second derivatives.
+- Once the determinants are computed across the scale space, SURF looks for local maxima and minima in this determinant map. This is done in a non-maximum suppression step, where each point is compared to its neighbors in the same scale as well as the scales above and below.
+Points that are local maxima or minima represent potential keypoints; these points indicate areas where the image structures show significant blob-like structures, which are distinctive and stable for feature matching.
+- Detected keypoints are then filtered based on the determinant value. Points with a determinant below a certain threshold are discarded to eliminate less stable and less distinctive points. Further refinement involves interpolating the scale and location to achieve subpixel and sub-scale accuracy. This step enhances the precision of keypoint localization, ensuring that the keypoints are accurately positioned relative to their true locations in the continuous image domain.
+- To ensure that the keypoints are not located along edges (which are less stable for matching), SURF applies a measure involving the trace and determinant of the Hessian matrix. Keypoints for which the ratio of the determinant to the trace (or similar measures) indicates an edge response are discarded.
+
+After keypoints are localized and assigned an orientation, the next step is to build a robust descriptor that effectively captures the local image structure around each keypoint.
+This descriptor can then be used for matching keypoints between different images.
+The descriptor phase in SURF involves several steps to ensure that the descriptor is both descriptive and robust to various transformations:
+
+- Before forming the descriptor, each keypoint is assigned a dominant orientation based on the sum of Haar wavelet responses within a circular neighborhood. This orientation is used to ensure rotation invariance by aligning the descriptor relative to this direction.
+- A square region centered on the keypoint and aligned with the assigned orientation is defined. The size of this region is scaled according to the scale at which the keypoint was detected, ensuring scale invariance.
+- This square region is divided into smaller 4x4 subregions. This subdivision allows the descriptor to capture fine details within the neighborhood while maintaining a robustness to small deformations and local geometric distortions.
+- For each of the 4x4 subregions, Haar wavelet responses are computed both in the direction of the orientation and perpendicular to it These responses are calculated over a 2x2 sub-subregion within each 4x4 block to efficiently cover the entire neighborhood.
+- For each 4x4 subregion, the following features are computed and compiled into the descriptor vector:
+  - The sum of the Haar wavelet responses $dx$ and $dy$
+  - The sum of the absolute values of the Haar wavelet responses $|dx|$ and $|dy|$.
+    These sums are calculated to capture both the polarity and the magnitude of the gradient information, which are crucial for describing the texture and structure of the local area.
+- The descriptor for each keypoint consists of the summed responses for each of the 4x4 subregions. 4 sums for each subregion. Given 16 subregions, the descriptor has a total of 64 elements (4 features per subregion × 16 subregions).
+- Finally, to achieve robustness against variations in illumination and contrast, the descriptor vector is normalized to unit length. This normalization step ensures that the descriptor's effectiveness is not influenced by changes in lighting conditions.
+
+In SURF, the matching procedure between feature descriptors extracted from different images is a critical step for applications like object recognition, image stitching, and 3D reconstruction.
+The efficiency and accuracy of this matching process are significantly enhanced by techniques such as Laplacian indexing.
+
+- Once descriptors have been extracted from images, the next step is to find corresponding descriptors between two images. This is usually done using a distance metric, most commonly the Euclidean distance. Each descriptor in one image is compared to descriptors in the other image to find the closest match.
+- The simplest and most common approach to matching descriptors is the nearest neighbor search, where each descriptor from one set is matched with the descriptor in the other set that has the smallest Euclidean distance.
+- To improve the robustness of the matching and reduce false matches, SURF often employs the ratio test proposed by Lowe in the context of SIFT. In this test, the distance to the nearest neighbor is compared to the distance to the second-nearest neighbor. A match is considered good if the ratio of these distances is below a certain threshold
+
+Laplacian indexing is an additional step used in SURF to enhance the matching process by considering the sign of the Laplacian (the trace of the Hessian matrix) at the location of keypoints.
+
+- Positive Laplacian: Indicates a dark blob on a light background (the Laplacian is positive at dark regions surrounded by lighter pixels).
+- Negative Laplacian: Indicates a light blob on a dark background (the Laplacian is negative at bright regions surrounded by darker pixels).
+
+Before comparing descriptors, Laplacian indexing can be used to filter out pairs of keypoints between images that do not have the same type of contrast polarity (i.e., both keypoints should either be dark blobs on light backgrounds or light blobs on dark backgrounds).
+This preliminary check reduces the computational load by avoiding unnecessary comparisons and also increases the likelihood that the matches are correct.
+By ensuring that only keypoints with the same contrast polarity are compared, Laplacian indexing speeds up the matching process and improves the accuracy by reducing false positives.
+
+#### Binary descriptors
+
+Binary descriptors play a crucial role in computer vision, particularly in applications where speed and efficiency are paramount.
+They transform the way that keypoint descriptions are stored and compared, offering several advantages over traditional feature descriptors.
+
+##### BRIEF
+
+BRIEF is a feature descriptor that generates a binary string representation of an image patch by comparing the intensities at pairs of pixels within the patch.
+It involves selecting a set of location pairs within a smoothed image patch and comparing their intensities.
+The result of each comparison (whether the intensity at one location is greater than the other) contributes one bit to the final binary descriptor.
+The descriptor is therefore very fast to compute and compact, but it is not rotation invariant and somewhat sensitive to noise.
+
+##### ORB
+
+ORB is essentially a combination of FAST (Features from Accelerated Segment Test) keypoint detector and BRIEF descriptor with modifications to enhance performance.
+It was designed to be a free alternative to SIFT and SURF, being both efficient and effective.
+ORB introduces a mechanism to add orientation to the keypoints to achieve rotation invariance.
+It also uses a learning-based method to select the most informative and robust pairs of pixels (from a set trained on a corpus of images) for the binary comparison in BRIEF.
+
+##### FREAK
+
+FREAK is inspired by the human visual system, particularly the pattern of retinal ganglion cells, which are denser towards the fovea and become sparser towards the periphery.
+FREAK generates binary descriptors by comparing image intensities across a retinal sampling pattern.
+The sampling pattern uses overlapping receptive fields that increase in size in a logarithmic manner from the center towards the periphery, which mimics the distribution of human retinal cells.
+It is more robust to rotation and scale changes compared to BRIEF and has a lower computational cost compared to more complex descriptors like SIFT or SURF.
+
+### Feature Matching
+
+Feature matching involves identifying corresponding features (or keypoints) between different sets of images.
+This process is crucial for many applications, such as stereo vision, object recognition, motion tracking, image stitching, and 3D reconstruction.
+Feature matching aims to establish correspondences between sets of features extracted from different images.
+These features are often described by descriptors, which encapsulate key information about the feature and its surrounding area in a compact form.
+
+- Feature detection: First, features or keypoints in each image are detected. These keypoints are typically points of interest that can be reliably identified and are invariant to changes in scale, orientation, and lighting.
+- Feature description: Each detected feature is then described by a feature descriptor.The descriptor encodes the appearance of the feature in a way that is intended to be distinctive and robust against transformations. The goal is for the same feature to have similar descriptors even when captured under different conditions.
+- Once features are described, the next step is to match these descriptors between different images. This involves finding pairs of descriptors that are closest according to some distance metric (like Euclidean distance for real-valued descriptors or Hamming distance for binary descriptors).
+- The choice of distance metric depends on the type of descriptor used. Real-valued descriptors (e.g., from SIFT or SURF) are typically matched using Euclidean distance, while binary descriptors (e.g., from ORB or BRIEF) use Hamming distance because it is computationally more efficient.
+
+### Deep Learning Approaches
+
+Modern approaches uses Deep learning.
+These techniques represent significant advancements in the way local features are detected, described, and matched across images.
+
+#### SuperPoint and SuperGlue
+
+SuperPoint consists of a single convolutional neural network (CNN) that simultaneously learns to detect interest points and describe them.
+The model is initially trained on synthetic data and then fine-tuned through self-supervised or semi-supervised learning on real-world images.
+
+- Dual Head Architecture: SuperPoint utilizes a CNN with a shared encoder and two separate heads: one for interest point detection and another for descriptor computation. The shared encoder processes the input image and extracts feature maps that are common to both tasks, which is efficient and leverages shared information.
+- This head processes the output of the shared encoder to produce a dense heatmap where each pixel value represents the probability of being an interest point. Training this part involves using a ground truth heatmap where known keypoints are marked.
+The keypoints are then typically selected by choosing local maxima in the heatmap, often with non-maximum suppression to ensure that the keypoints are well-distributed and non-overlapping.
+- The descriptor head outputs a dense descriptor map where each pixel has a corresponding feature vector (descriptor). This map has the same spatial dimensions as the heatmap but with a deeper channel dimension representing the descriptor length.
+Descriptors are extracted directly from locations corresponding to detected keypoints. These descriptors encode the local appearance of the image around each keypoint and are designed to be distinctive and robust against various image transformations.
+
+SuperGlue is a novel method for matching features across different images, which complements SuperPoint by providing a powerful matching mechanism.
+It uses a Graph Neural Network (GNN) to consider the relationships between features in each image as well as across images.
+SuperGlue is designed to address the limitations of traditional feature matching techniques which often rely solely on nearest neighbor matching and may struggle with complex scenarios involving significant changes in viewpoint, scale, or occlusions.
+SuperGlue, through its graph-based approach, aims to maximize the correctness of matches by considering the relationships and spatial arrangements between features across images.
+
+As previously discussed, SuperPoint serves as the feature detection and description method. It provides keypoints and associated descriptors that are robust and repeatable across different views of the same scene.
+The keypoints and descriptors generated by SuperPoint are fed into SuperGlue as the foundational elements for matching.
+
+- Graph Construction: SuperGlue constructs a graph where nodes represent the feature descriptors (from SuperPoint or any other feature detector), and edges represent possible matches. The graph includes nodes for features from both of the images that are being matched.
+- Graph Neural Network: The GNN processes this graph to refine the potential matches by considering both local evidence (how well the descriptors match) and global context (the geometric arrangement of features and consistency of potential matches across the graph).
+- Match Filtering: SuperGlue uses the output from the GNN to select matches that are both locally and globally consistent, significantly improving the accuracy and robustness of the matching process compared to traditional methods that often rely solely on nearest neighbor searches and simple geometric constraints.
+
+## Image transformations ans alignment

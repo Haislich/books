@@ -30,8 +30,16 @@
 
         - [Interpolation techniques](./image_processing/image_resizing/image_resampling/up_sampling/interpolation_techniques.md)
   
-  - [Image gradient](./image_processing/image_gradient/introduction.md)<!-- TODO CONVERTIRE -->
-
-    - [Edges](./image_processing/image_gradient/edges/introduction.md)
-      - [Effect of Noise](./image_processing/image_gradient/effect_of_noise)
-      - [Laplacian of Gaussian](./image_processing/image_gradient/laplacian_of_gaussian.md)
+  - [Image Gradient](./image_processing/image_gradient/)
+    - [Gradient Calculation](#gradient-calculation)
+      - [Gradient Magnitude](#gradient-magnitude)
+      - [Gradient Orientation](#gradient-orientation)
+      - [Gradient Estimation Methods (First-Order Operators)](#gradient-estimation-methods-first-order-operators)
+    - [Edges](#edges)
+      - [Noise Considerations in Edge Detection](#noise-considerations-in-edge-detection)
+    - [Laplacian Filter](#laplacian-filter)
+      - [Derivative Theorem of Convolution](#derivative-theorem-of-convolution)
+      - [Laplacian of Gaussian](#laplacian-of-gaussian)
+      - [Zero Crossing](#zero-crossing)
+    - [Edge Detection](#edge-detection)
+      - [Canny Edge Detector](#canny-edge-detector)

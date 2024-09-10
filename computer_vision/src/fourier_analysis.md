@@ -2,114 +2,92 @@
 
 Fourier analysis is a mathematical method used to decompose functions or signals into sinusoids of different frequencies.
 
-Fourier analysis plays a crucial role in computer vision by providing methods to process, analyze, and manipulate images in the frequency domain.
-Some of the most important applications are:
+Fourier analysis plays a crucial role in computer vision by providing methods to process, analyze, and manipulate images in the frequency domain. Some of the most important applications are:
 
-- Image Filtering: Fourier analysis allows for efficient high-pass, low-pass, and band-pass filtering, which can be used to remove noise, blur, or enhance image features.
-- Image Compression: By transforming an image into its frequency components, redundant or less important frequencies can be removed, leading to effective compression without significant loss of quality.
-- Feature Extraction: Fourier transforms can highlight periodic patterns and textures in an image, which are useful for object recognition and classification.
-- Edge Detection: Edges in images can be detected by focusing on specific frequency ranges within the Fourier transform of an image.
+- **Image Filtering**: Fourier analysis allows for efficient high-pass, low-pass, and band-pass filtering, which can be used to remove noise, blur, or enhance image features.
+- **Image Compression**: By transforming an image into its frequency components, redundant or less important frequencies can be removed, leading to effective compression without significant loss of quality.
+- **Feature Extraction**: Fourier transforms can highlight periodic patterns and textures in an image, which are useful for object recognition and classification.
+- **Edge Detection**: Edges in images can be detected by focusing on specific frequency ranges within the Fourier transform of an image.
 
 ## Fourier Series
 
-The Fourier series is a way to represent a periodic function as a sum of sine and cosine functions, or equivalently, as a sum of complex exponentials.
-A function $f(t)$ that is periodic over a period $T$ can be represented as:
+The Fourier series represents a periodic function as a sum of sine and cosine functions, or equivalently, as a sum of complex exponentials. A function \(f(t)\) that is periodic over a period \(T\) can be represented as:
 
-$$
-f(t) = a_0 + \sum_{n=1}^\infty \left(a_n \cos\left(\frac{2\pi n t}{T}\right) + b_n \sin\left(\frac{2\pi n t}{T}\right)\right) \\
-a_n = \frac{2}{T} \int_0^T f(t) \cos\left(\frac{2\pi n t}{T}\right) dt\\
-b_n = \frac{2}{T} \int_0^T f(t) \sin\left(\frac{2\pi n t}{T}\right) dt
-$$
+\[
+f(t) = a_0 + \sum_{n=1}^\infty \left(a_n \cos\left(\frac{2\pi n t}{T}\right) + b_n \sin\left(\frac{2\pi n t}{T}\right)\right)
+\]
 
-Where $a_n$ is the average value of the function over a period of time.
+Where the Fourier coefficients \(a_n\) and \(b_n\) are given by:
+
+\[
+a_n = \frac{2}{T} \int_0^T f(t) \cos\left(\frac{2\pi n t}{T}\right) \, dt
+\]
+\[
+b_n = \frac{2}{T} \int_0^T f(t) \sin\left(\frac{2\pi n t}{T}\right) \, dt
+\]
 
 ## Fourier Transform
 
-The Fourier transform extends the idea of Fourier series to non-periodic functions, providing a frequency spectrum for functions defined over all real numbers.
-The fourier transform of a function $f(t)$ can be defined as:
+The Fourier transform extends the idea of Fourier series to non-periodic functions, providing a frequency spectrum for functions defined over all real numbers. The Fourier transform of a function \(f(t)\) is defined as:
 
-$$
-\hat{f}(\omega) = \int_{-\infty}^\infty f(t) e^{-i \omega t} dt
-$$
+\[
+\hat{f}(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i \omega t} \, dt
+\]
 
-Where $\omega$ is the angluar frequency, and the integral is taken over the entire real time, reflectine the function's values across time.
+Where \(\omega\) is the angular frequency, and the integral is taken over the entire real line, capturing the function's values across time.
 
 ### Discrete Fourier Transform
 
-In image processing, Fourier Transforms are primarily used, specifically the Discrete Fourier Transform (DFT).
+In image processing, Fourier transforms are primarily used in their discrete form, known as the Discrete Fourier Transform (DFT). Since images do not naturally repeat across boundaries, they are treated as aperiodic signals, making the Fourier transform ideal for analyzing such non-periodic data.
 
-Images are typically treated as aperiodic signals because they don't naturally repeat across the boundaries.
-The Fourier Transform is suited for analyzing such non-periodic data.
-Many operations in image processing, such as filtering, enhancement, and noise reduction, are more intuitively and efficiently handled in the frequency domain.
-The Fourier Transform provides the means to convert an image to this domain.
-More in particular for digital images, which consist of discrete pixel values, the Discrete Fourier Transform (DFT) is used.
+The DFT converts an image to the frequency domain, facilitating operations such as filtering, enhancement, and noise reduction. For digital images, which consist of discrete pixel values, the DFT is used. The DFT is typically represented through its magnitude and phase components:
 
-Visualizing the Discrete Fourier Transform (DFT) helps in understanding the frequency components of a signal or image.
-The DFT is typically represented through its magnitude and phase components, which are extracted from the complex numbers resulting from the transformation.
+- **Magnitude Spectrum**: Shows the amplitude of each frequency component in the signal, indicating how much of each frequency is present in the original signal.
+- **Phase Spectrum**: Indicates the shift or displacement of each frequency component relative to the start of the signal.
 
-- Magnitude Spectrum: The magnitude of the DFT provides information about the amplitude of each frequency component in the signal. It tells you how much of each frequency is present in the original signal.
-- Phase Spectrum: The phase of the DFT indicates the shift or displacement of each frequency component relative to the start of the signal.
+## Convolution Theorem
 
-## Convolution theorem
+The Convolution Theorem states that convolution in the time domain corresponds to multiplication in the frequency domain, and vice versa. This is particularly useful in signal and image processing, as convolution can be computationally expensive. Using the Fourier transform, convolution can be performed more efficiently:
 
-The Convolution Theorem is a fundamental principle that connects the operations of convolution and multiplication through the Fourier transform, providing an efficient way to perform these operations in different domains.
-Convolution can be computationally expensive, especially for large data sets.
-The theorem allows convolution to be performed by multiplying the Fourier transforms of the functions and then applying the inverse Fourier transform to the result, which is typically more efficient.
-Filters applied to signals or images often involve convolution with a kernel (or filter).
-Using the Fourier transform, these convolutions can be executed more rapidly in the frequency domain.
+- Apply the Fourier transform to both the signal and the filter.
+- Multiply their transforms in the frequency domain.
+- Apply the inverse Fourier transform to the result.
 
-The inverse relation also holds, which states that the inverse Fourier transform of the product of two Fourier transforms yields the convolution of their respective inverse Fourier transforms.
-This property is useful for analyzing systems where you know the frequency response and need to determine the corresponding time-domain response.
-<!-- For example, blurring an image can be accomplished by convolving the image with a Gaussian filter.
-Instead of performing this convolution directly in the spatial domain, it is often more efficient to take the Fourier transform of both the image and the Gaussian filter, multiply these transforms, and then apply the inverse Fourier transform to the result. -->
+This approach is much faster than directly performing convolution in the spatial domain, especially for large data sets.
 
-## Blurring revised
+## Blurring in Time and Frequency Domains
 
-In the time domain blurring is achieved by convolving an image with a blur kernel (a small matrix).
-This kernel is slid over the image, and at each position, the sum of the weighted pixel values covered by the kernel replaces the central pixel.
-The shape and size of the kernel affect the blur characteristics.
-For example, a Gaussian kernel produces smooth gradients, while a square kernel (uniform filter) tends to preserve edges and corners more, which can result in artifacts.
+In the time domain, blurring is achieved by convolving an image with a blur kernel (a small matrix). The kernel is slid over the image, and at each position, the sum of the weighted pixel values covered by the kernel replaces the central pixel. The kernel's shape and size affect the blur characteristics. For example, a Gaussian kernel produces smooth gradients, while a square kernel tends to preserve edges, potentially introducing artifacts.
 
-In the frequency domain, blurring is achieved by multiplying the Fourier transform of the image by a filter (also in the frequency domain).
-The nature of the filter determines how different frequencies are attenuated or enhanced.
-A Gaussian filter in the frequency domain has a smooth decay, affecting high frequencies gradually and preserving natural transitions.
-In contrast, a square filter has a sharp cutoff, abruptly eliminating high frequencies, which can introduce ringing artifacts (Gibbs phenomenon).
+In the frequency domain, blurring is performed by multiplying the Fourier transform of the image by a filter (also in the frequency domain). A Gaussian filter in the frequency domain has a smooth decay, gradually attenuating high frequencies and preserving natural transitions. A square filter, however, has a sharp cutoff, eliminating high frequencies abruptly, which can introduce ringing artifacts (Gibbs phenomenon).
 
 ## Filters
 
-- Low Pass Filters (LPF): Allow low frequencies to pass through while attenuating high frequencies. Low frequencies in images represent smooth variations in intensity, which are associated with general features and areas of uniform color. The image is smoothened, reducing noise and detail.
-- High Pass Filtes (HPF): Allow high frequencies to pass while attenuating low frequencies. High frequencies represent rapid changes in intensity such as edges. Enhances or detects edges in the image, making it useful for edge detection and sharpening.
-- Band Pass Filters (BPF): Allow a band of frequencies to pass through while blocking frequencies outside this range. This can be achieved by combining LPF and HPF. Isolates frequencies within a specific range, which can be used to focus on certain details or textures in the image.
+- **Low Pass Filters (LPF)**: Allow low frequencies to pass through while attenuating high frequencies. In images, low frequencies represent smooth intensity variations, which are associated with general features and areas of uniform color. LPFs smooth the image, reducing noise and detail.
+- **High Pass Filters (HPF)**: Allow high frequencies to pass while attenuating low frequencies. High frequencies represent rapid intensity changes, such as edges. HPFs enhance or detect edges, making them useful for edge detection and sharpening.
+- **Band Pass Filters (BPF)**: Allow a specific band of frequencies to pass while blocking frequencies outside this range. BPFs can isolate frequencies within a chosen range, useful for focusing on specific details or textures in the image.
 
-## Nyquist sampling theorem
+## Nyquist Sampling Theorem
 
-The Nyquist Sampling Theorem is a critical principle in signal processing that states:
+The Nyquist Sampling Theorem states:
 
 > To perfectly reconstruct a continuous signal from its samples, the sampling rate must be at least twice the highest frequency present in the signal (the Nyquist rate).
 
-When a signal is undersampled (sampled below the Nyquist rate), higher frequencies are incorrectly interpreted as lower frequencies, leading to distortions known as aliasing.
+When a signal is undersampled (i.e., sampled below the Nyquist rate), higher frequencies are misinterpreted as lower frequencies, leading to distortions known as aliasing.
 
-### Relation with gaussian pyramids
+### Relation with Gaussian Pyramids
 
-A Gaussian Pyramid is constructed by repeatedly reducing an image's resolution while applying a Gaussian blur between each step.
-This process creates a stack of progressively lower resolution images.
-When reducing the resolution of images in a pyramid, it's crucial to apply Gaussian blurring to respect the Nyquist criterion.
-The blur removes high-frequency content from the image, which could otherwise cause aliasing when the image is subsampled.
+A Gaussian Pyramid is created by repeatedly reducing an image's resolution, applying Gaussian blurring at each step. This process produces a stack of progressively lower-resolution images. Gaussian blurring ensures that high-frequency content is removed before subsampling, which prevents aliasing and adheres to the Nyquist criterion.
 
-### Relation to human vision
+### Relation to Human Vision
 
-The human eye is filled with photoreceptor cells (rods and cones) that sample the continuous visual field.
-These cells are not uniformly distributed across the retina but are denser in the fovea (central region) and sparser toward the periphery.
-This distribution allows for high-resolution sampling of the visual field where focus is directed, akin to a higher sampling rate at the fovea conforming to the Nyquist rate for higher spatial frequencies (details).
-Just as in digital sampling, improper sampling in the human visual system can lead to aliasing.
-For instance, when looking at finely patterned materials or distant scenes without adequate focus, patterns can seem distorted or different from their true form.
+The human eye contains photoreceptor cells (rods and cones) that sample the continuous visual field. These cells are densely packed in the fovea (central region) and sparse toward the periphery, allowing for high-resolution sampling where focus is directed, akin to a higher sampling rate at the fovea. Just as in digital sampling, improper sampling in the visual system can lead to aliasing, such as when viewing fine patterns or distant scenes.
 
-#### Hybrid Images
+## Hybrid Images
 
-Hybrid images combine two images into one, using multi-resolution techniques to present an image that changes interpretation based on viewing distance.
-One image is processed to keep only high-frequency information (details).
-Another image is processed to retain only low-frequency information (general shape and structure).
-The high-pass filtered image and the low-pass filtered image are combined by simple addition.
-The resulting image will have properties of both images—visible details from the high-pass image at close viewing distances, and broader features from the low-pass image at further distances.
-At close range, the observer's vision is sensitive to the high-frequency details, thus perceiving the details of the high-pass image.
-From a distance, the human eye naturally filters out the finer details (high frequencies), leaving the broader strokes (low frequencies) of the low-pass image to dominate the perception.
+Hybrid images combine two images using multi-resolution techniques. One image retains only high-frequency information (details), and the other retains only low-frequency information (general shape). These images are combined by simple addition:
+
+- At close viewing distances, the human eye perceives the high-frequency details of the high-pass filtered image.
+- At farther distances, the eye naturally filters out finer details, leaving the broader, low-frequency features from the low-pass filtered image.
+
+This results in an image that changes interpretation based on the viewing distance.
